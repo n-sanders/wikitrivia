@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { useRouter } from 'next/router'; // Import useRouter
 import { GameState } from "../types/game";
 import { Item } from "../types/item";
 import createState from "../lib/create-state";
@@ -9,33 +10,35 @@ import Instructions from "./instructions";
 import badCards from "../lib/bad-cards";
 
 export default function Game() {
+  const router = useRouter();
+  const { deck } = router.query; // Extract deck from URL params
   const [state, setState] = useState<GameState | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [started, setStarted] = useState(false);
   const [items, setItems] = useState<Item[] | null>(null);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const fetchGameData = async () => {
-      const res = await axios.get<string>("/items.json");
-      const items: Item[] = res.data
-        .trim()
-        .split("\n")
-        .map((line) => {
-          return JSON.parse(line);
-        })
-        // Filter out questions which give away their answers
-        .filter((item) => !item.label.includes(String(item.year)))
-        .filter((item) => !item.description.includes(String(item.year)))
-        .filter((item) => !/(?:th|st|nd)[ -]century/i.test(item.description))
-        // Filter cards which have bad data as submitted in https://github.com/tom-james-watson/wikitrivia/discussions/2
-        .filter((item) => !(item.id in badCards));
-      setItems(items);
+      try {
+        const res = await axios.get<string>(`/${deck || 'items'}.json`);
+        const items: Item[] = res.data
+          .trim()
+          .split("\n")
+          .map((line) => JSON.parse(line))
+          .filter((item) => !(item.id in badCards));
+        setItems(items);
+      } catch (error) {
+        console.error("Failed to fetch items:", error);
+        // Handle error, maybe set state to show error message
+      }
     };
 
-    fetchGameData();
-  }, []);
+    if (router.isReady) { // Ensure router has all info before fetching
+      fetchGameData();
+    }
+  }, [deck, router.isReady]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     (async () => {
       if (items !== null) {
         setState(await createState(items));

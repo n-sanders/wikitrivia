@@ -42,6 +42,7 @@ export default function ItemCard(props: Props) {
   const { draggable, flippedId, index, item, setFlippedId } = props;
 
   const flipped = item.id === flippedId;
+  const isWinCard = item.id === "you-win-id";
 
   const cardSpring = useSpring({
     opacity: flipped ? 1 : 0,
@@ -56,15 +57,11 @@ export default function ItemCard(props: Props) {
       return item.description.replace(/ \(.+\)/g, "");
     }
 
-    if (item.instance_of.includes("human") && item.occupations !== null) {
-      return item.occupations[0];
-    }
-
-    return item.instance_of[0];
+    return safeDescription;
   }, [item]);
 
   return (
-    <Draggable draggableId={item.id} index={index} isDragDisabled={!draggable}>
+    <Draggable draggableId={item.id} index={index} isDragDisabled={!draggable || isWinCard}>
       {(provided, snapshot) => {
         return (
           <div
@@ -100,7 +97,7 @@ export default function ItemCard(props: Props) {
               <div
                 className={styles.image}
                 style={{
-                  backgroundImage: `url("${createWikimediaImage(item.image)}")`,
+                  backgroundImage: `url("${item.image}")`,
                 }}
               ></div>
               <animated.div
@@ -132,19 +129,6 @@ export default function ItemCard(props: Props) {
                 {capitalize(datePropIdMap[item.date_prop_id])}: {item.year}
               </span>
               <span className={styles.description}>{item.description}.</span>
-              <a
-                href={`https://www.wikipedia.org/wiki/${encodeURIComponent(
-                  item.wikipedia_title
-                )}`}
-                className={styles.wikipedia}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={(e) => {
-                  e.stopPropagation();
-                }}
-              >
-                Wikipedia
-              </a>
             </animated.div>
           </div>
         );

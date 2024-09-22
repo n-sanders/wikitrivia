@@ -58,7 +58,8 @@ export default function Board(props: Props) {
       const newNext = state.nextButOne;
       const newNextButOne = getRandomItem(
         newDeck,
-        newNext ? [...newPlayed, newNext] : newPlayed
+        newNext ? [...newPlayed, newNext] : newPlayed,
+        state.playedIds,
       );
       const newImageCache = [preloadImage(newNextButOne.image)];
 
@@ -78,6 +79,11 @@ export default function Board(props: Props) {
               delta,
             },
       });
+
+      // Check for win condition
+      if (state.playedIds.size === state.deck.length && state.lives > 0) {
+        console.log("You win!"); // Trigger win UI or logic here
+      }
     } else if (
       source.droppableId === "played" &&
       destination.droppableId === "played"
@@ -92,7 +98,7 @@ export default function Board(props: Props) {
         badlyPlaced: null,
       });
     }
-  }
+}
 
   // Ensure that newly placed items are rendered as draggables before trying to
   // move them to the right place if needed.
