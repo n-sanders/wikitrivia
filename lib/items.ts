@@ -32,22 +32,6 @@ export function getRandomItem(deck: Item[], played: Item[], playedIds: Set<strin
   return item;
 }
 
-function shuffleArray<T>(array: Array<T>): Array<T> {
-  for (let i = array.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [array[i], array[j]] = [array[j], array[i]]; // swap elements
-  }
-  return array;
-}
-
-function tooClose(item: Item, played: Item[]) {
-  let distance = (played.length < 40) ? 5 : 1;
-  if (played.length < 11)
-    distance = 110 - 10 * played.length;
-
-  return played.some((p) => Math.abs(item.year - p.year) < distance);
-}
-
 export function checkCorrect(
   played: PlayedItem[],
   item: Item,
